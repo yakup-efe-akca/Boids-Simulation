@@ -12,6 +12,7 @@ The project demonstrates how simple local behaviors can create complex flocking 
 - Screen wrapping
 - Real-time visualization using raylib
 - FPS monitoring
+- Spatial grid optimization for efficient neighbor searching
 
 ## Requirements
 
@@ -45,6 +46,5 @@ The current implementation uses an O(n²) neighbor search.
 
 ## Future Improvements
 
-- Spatial grid optimization
 - Dynamic arrays for grid cells
 - Performance comparison between different data structures
