@@ -1,0 +1,6 @@
+# Compiled executable
+/Boids
+
+# macOS files
+*.dSYM/
+.DS_Store
