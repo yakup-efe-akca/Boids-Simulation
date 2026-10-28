@@ -1,5 +1,7 @@
 
 #include "raylib.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 
 #define NEIGHBOR_RADIUS 50
@@ -16,11 +18,14 @@
 #define GRID_COLS ((SCREEN_WIDTH + CELL_SIZE - 1) / CELL_SIZE)
 #define GRID_ROWS ((SCREEN_HEIGHT + CELL_SIZE - 1) / CELL_SIZE)
 
-#define MAX_BOIDS_PER_CELL 20
+#define INITIAL_CAPACITY 4
 typedef struct {
-    int boidIndices[MAX_BOIDS_PER_CELL];
+    int *boidIndices;
     int count;
+    int capacity;
 } Cell;
+
+Cell grid[GRID_ROWS][GRID_COLS];
 
 typedef struct
 {
@@ -29,6 +34,34 @@ typedef struct
     float vx;
     float vy;
 } Boid;
+
+void initCell(Cell *cell) {
+    cell->count = 0;
+    cell->capacity = INITIAL_CAPACITY;
+    cell->boidIndices = malloc(sizeof(int) * cell->capacity);
+    if(cell->boidIndices == NULL) {
+        fprintf(stderr, "Memory allocation failed!\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void addBoidToCell(Cell *cell, int boidIndex) {
+    if(cell->count == cell->capacity) {
+        
+        int newCapacity = cell->capacity * 2;
+        int *temp = realloc(cell->boidIndices, newCapacity * sizeof(int));
+        
+        if (temp == NULL) {
+            fprintf(stderr, "Memory reallocation failed!\n");
+            exit(EXIT_FAILURE);
+        }
+        cell->boidIndices = temp;
+        cell->capacity = newCapacity;
+    }
+        
+    cell->boidIndices[cell->count] = boidIndex;
+    cell->count++;
+}
 
 void wrapAround(Boid *b) {
     if (b->x < 0)
@@ -54,7 +87,8 @@ void limitSpeed(Boid *b) {
 
 void updateFlock(Boid boid[], int count, float dt) {
     Boid next[BOID_COUNT];
-    Cell grid[GRID_ROWS][GRID_COLS];
+    
+    
     for (int i = 0; i < GRID_ROWS; i++) {
         for (int j = 0; j < GRID_COLS; j++) {
             grid[i][j].count = 0;
@@ -71,12 +105,9 @@ void updateFlock(Boid boid[], int count, float dt) {
                 row = GRID_ROWS - 1;
                 
             Cell *cell = &grid[row][col];
-            if (cell->count < MAX_BOIDS_PER_CELL) {
-                cell->boidIndices[cell->count] = i;
-                cell->count++;
-            }
+            addBoidToCell(cell, i);
         }
-    
+
     for (int i = 0; i < count; i++) {
         next[i] = boid[i];
         
@@ -180,7 +211,12 @@ int main(void) {
         boid[i].vx = GetRandomValue(-100, 100);
         boid[i].vy = GetRandomValue(-100, 100);
     }
-
+    
+    for (int row = 0; row < GRID_ROWS; row++) {
+        for (int col = 0; col < GRID_COLS; col++){
+            initCell(&grid[row][col]);
+        }
+    }
     while (!WindowShouldClose()) {
         float dt = GetFrameTime();
 
@@ -195,6 +231,12 @@ int main(void) {
         }
 
         EndDrawing();
+    }
+    
+    for (int row = 0; row < GRID_ROWS; row++) {
+        for (int col = 0; col < GRID_COLS; col++){
+            free(grid[row][col].boidIndices);
+        }
     }
 
     CloseWindow();
