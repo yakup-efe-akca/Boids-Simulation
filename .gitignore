@@ -1,6 +1,12 @@
 # Compiled executable
-/Boids
+Boids
 
-# macOS files
-*.dSYM/
+# Object files
+*.o
+
+# macOS
 .DS_Store
+*.dSYM/
+
+# Build files
+build/
